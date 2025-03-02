@@ -26,7 +26,8 @@ class TelegramBot(BaseBot):
         """Handle incoming messages"""
         chat_id = update["message"]["chat"]["id"]
         text = update["message"].get("text", "")
-        
+        print(f"Got message: {text}")
+
         # Command handling
         if text == "/start":
             self.send_welcome(chat_id)
@@ -44,6 +45,8 @@ class TelegramBot(BaseBot):
             self.confirm_filter(chat_id)
         elif text.lower() == "edit" and chat_id in self.user_data:
             self.edit_filter(chat_id)
+        elif chat_id in self.user_data and self.user_data[chat_id].get("state") == FilterState.DELETE_FILTER:
+            self.confirm_delete_filter(chat_id, text)
         # State-based handling
         elif chat_id in self.user_data:
             self.process_state_input(chat_id, text)
@@ -152,6 +155,24 @@ class TelegramBot(BaseBot):
         # Run an immediate search for the user
         self._search_for_user(chat_id)
     
+    def confirm_delete_filter(self, chat_id, text):
+        """Confirm and delete the selected filter"""
+        chat_id_str = str(chat_id)
+        filters = self.filter_service.get_user_filters(chat_id_str)
+        
+        try:
+            index = int(text) - 1
+            if 0 <= index < len(filters):
+                self.filter_service.delete_filter(chat_id_str, index)
+                self.messenger.send_message(chat_id, "Filter deleted successfully.")
+                self.view_filters(chat_id)
+            else:
+                self.messenger.send_message(chat_id, "Invalid selection. Please enter a valid number.")
+        except ValueError:
+            self.messenger.send_message(chat_id, "Please enter a number corresponding to the filter you want to delete.")
+        
+        del self.user_data[chat_id]
+        
     def view_filters(self, chat_id):
         """View saved filters"""
         chat_id_str = str(chat_id)
@@ -159,18 +180,23 @@ class TelegramBot(BaseBot):
         
         if not filters:
             self.messenger.send_message(chat_id, "You have no saved filters.")
-            return
+            return []
         
         filters_message = "Your saved filters:\n"
         for idx, filter_data in enumerate(filters):
             filters_message += f"\nFilter {idx + 1}:\nItem: {filter_data['item']}\nPrice: {filter_data['price']}\nLocation: {filter_data['location']}\n"
         
         self.messenger.send_message(chat_id, filters_message)
+        return filters
     
     def delete_filter(self, chat_id):
         """Delete a filter"""
-        self.messenger.send_message(chat_id, "Deletion is not yet supported!")
-    
+        self.messenger.send_message(chat_id, "Pick a filter to delete:\n")
+        filters = self.view_filters(chat_id)
+        if not filters:
+            return
+        self.user_data[chat_id] = {"state": FilterState.DELETE_FILTER}        
+
     def update_filter(self, chat_id):
         """Update a filter"""
         self.messenger.send_message(chat_id, "Update is not yet supported!")
