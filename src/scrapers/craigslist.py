@@ -90,12 +90,13 @@ def scrape_craigslist(url, search_params):
     options.add_argument("--disable-backgrounding-occluded-windows")  
     options.add_argument("--blink-settings=imagesEnabled=false")  # Disables images for faster loading
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36")
-
+    
+    chrome_driver_path = "/usr/bin/chromedriver"
     
     # Initialize the WebDriver
     try:
         logger.info("Initializing Chrome WebDriver")
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        driver = webdriver.Chrome(service=Service(chrome_driver_path), options=options)
     except Exception as e:
         logger.error(f"Error initializing Chrome WebDriver: {e}")
         return []
@@ -104,7 +105,6 @@ def scrape_craigslist(url, search_params):
     try:
         logger.info(f"Opening URL: {url}")
         driver.get(url)
-        time.sleep(5)  # Allow page to fully load
     except Exception as e:
         logger.error(f"Error opening URL {url}: {e}")
         driver.quit()
