@@ -1,0 +1,5 @@
+1. when spaces are added to the item, ("gta 5"), the craigslist link only does "gta". maybe need to replace all spaces with "+"
+2. test edit / delete flow and make sure the scraper can adjust to those changes
+3. add concurrency to search multiple filters at the same time for a user
+4. add test with different chat_id
+5. make the scraper return results to the bot every 10 minutes

@@ -1,5 +1,8 @@
 from .base import BaseBot, BotState
 from enum import Enum
+from threading import Thread
+import time
+import schedule
 
 class FilterState(Enum):
     """States specific to the filter bot"""
@@ -14,7 +17,7 @@ class FilterState(Enum):
     DELETE_FILTER = "delete_filter"
     UPDATE_FILTER = "update_filter"
 
-class FilterBot(BaseBot):
+class TelegramBot(BaseBot):
     """Bot for managing item filters"""
     
     LOCATIONS = ["New York", "San Francisco", "Los Angeles", "Chicago", "Miami"]
@@ -22,6 +25,43 @@ class FilterBot(BaseBot):
     def __init__(self, messenger, filter_service):
         super().__init__(messenger)
         self.filter_service = filter_service
+        # Start the periodic search thread
+        self._start_background_search()
+    
+    def _start_background_search(self):
+        """Start the background thread for periodic searching"""
+        search_thread = Thread(target=self._run_periodic_search, daemon=True)
+        search_thread.start()
+    
+    def _run_periodic_search(self):
+        """Run periodic search every 10 minutes"""
+        # Schedule the job to run every 10 minutes
+        schedule.every(10).minutes.do(self._search_all_filters)
+        
+        # Keep the scheduler running
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+    
+    def _search_all_filters(self):
+        """Search for all users' filters"""
+        try:
+            from scrapers import craigslist
+            # Get all users with filters
+            all_users = self.filter_service.get_all_users()
+            
+            for user_id in all_users:
+                # Convert string user_id to integer for messenger
+                chat_id = int(user_id)
+                results = craigslist.main(user_id)
+                
+                if results:
+                    self.messenger.send_message(chat_id, "New listings matching your filters:")
+                    for result in results:
+                        self.messenger.send_message(chat_id, f"{result['title']}\n{result['price']}\n{result['link']}")
+        except Exception as e:
+            # Log the error but don't crash the thread
+            print(f"Error in periodic search: {str(e)}")
     
     def handle_message(self, update):
         """Handle incoming messages"""
@@ -145,25 +185,6 @@ class FilterBot(BaseBot):
         self.filter_service.add_filter(chat_id_str, filter_data)
         self.messenger.send_message(chat_id, "Your filter has been saved.")
         del self.user_data[chat_id]
-        
-        try:
-            from scrapers import craigslist
-            results = craigslist.main(chat_id_str)
-            if results:
-                for result in results:
-                    self.messenger.send_message(chat_id, f"{result['title']}\n{result['price']}\n{result['link']}")
-            else:
-                self.messenger.send_message(
-                    chat_id,
-                    "No listings found matching your filter currently. You'll be notified when items appear."
-                )
-            
-        except Exception as e:
-            self.messenger.send_message(
-                chat_id,
-                f"Your filter has been saved, but there was an error running the search: {str(e)}"
-            )
-            
     
     def view_filters(self, chat_id):
         """View saved filters"""

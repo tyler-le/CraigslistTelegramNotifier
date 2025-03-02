@@ -60,3 +60,7 @@ class FilterService:
         del filters_data[user_id][filter_index]
         self.save_filters(filters_data)
         return True
+    
+    def get_all_users(self):
+        filters_data = self.load_filters()
+        return filters_data.keys()
