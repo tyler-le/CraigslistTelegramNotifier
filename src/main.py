@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import os
 from messaging.telegram import TelegramMessenger
 from services.filter_service import FilterService
-from bot.filter_bot import TelegramBot
+from bot.telegram_bot import TelegramBot
 from constants.constants import FILTERS_FILE
 
 # Load environment variables

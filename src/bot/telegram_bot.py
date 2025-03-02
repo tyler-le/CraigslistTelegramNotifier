@@ -1,4 +1,6 @@
 import logging
+
+from constants.constants import LOCATIONS
 from .base import BaseBot, FilterState
 
 # Set up logging
@@ -13,10 +15,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class TelegramBot(BaseBot):
-    """Bot for managing item filters"""
-    
-    LOCATIONS = ["New York", "San Francisco", "Los Angeles", "Chicago", "Miami"]
-    
+    """Bot for managing item filters"""    
     def __init__(self, messenger, filter_service):
         super().__init__(messenger)
         self.filter_service = filter_service
@@ -121,7 +120,7 @@ class TelegramBot(BaseBot):
         self.user_data[chat_id]["state"] = FilterState.LOCATION
         location_buttons = [
             [{"text": location, "callback_data": f"location_{location}"}] 
-            for location in self.LOCATIONS
+            for location in LOCATIONS
         ]
         self.messenger.send_buttons(chat_id, "Select a location:", location_buttons)
     
