@@ -4,6 +4,21 @@
             "item": "games",
             "price": "50",
             "location": "New York"
+        },
+        {
+            "item": "PS5",
+            "price": "500",
+            "location": "New York"
+        },
+        {
+            "item": "xbox",
+            "price": "500",
+            "location": "New York"
+        },
+        {
+            "item": "stuff",
+            "price": "100",
+            "location": "New York"
         }
     ]
 }
