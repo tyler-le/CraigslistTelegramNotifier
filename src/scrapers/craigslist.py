@@ -91,7 +91,7 @@ def scrape_craigslist(url, search_params):
     options.add_argument("--blink-settings=imagesEnabled=false")  # Disables images for faster loading
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36")
     
-    chrome_driver_path = "/usr/bin/chromedriver"
+    chrome_driver_path = "/usr/lib/chromium-browser/chromedriver"
     
     # Initialize the WebDriver
     try:
